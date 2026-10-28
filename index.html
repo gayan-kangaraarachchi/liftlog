@@ -22,9 +22,6 @@ input,select,textarea{font-size:16px!important}
 </style>
 </head>
 <body>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
 /* Layout: one-column phone-first app, max 600px, bottom tab bar; rest timer docks above the tabs. Plate colors (IWF) carry data. */
 :root{
@@ -32,8 +29,8 @@ input,select,textarea{font-size:16px!important}
   --accent:#C8162B; --accent-ink:#FFFFFF; --accent-soft:rgba(200,22,43,.10);
   --good:#1D7F49; --good-soft:rgba(29,127,73,.12);
   --p25:#D3202F; --p20:#1F5FBF; --p15:#E9B911; --p10:#2E9A4F; --p5:#F4F5F7; --p25s:#3A3D44; --p125:#A9AEB8;
-  --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:system-ui,-apple-system,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --body:system-ui,-apple-system,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --r:10px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -60,7 +57,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:12p
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
 .sync.cloud i{background:var(--good)}
 
-h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
 h1{font-size:30px;text-transform:uppercase;line-height:1.05}
 h2{font-size:22px;text-transform:uppercase}
 h3{font-size:19px}
@@ -216,33 +213,7 @@ const videoFor = (ex) => (ex.video && /^https?:\/\//i.test(ex.video)) ? ex.video
 const wu=(name,video,min)=>({name,video:video||"",...(min?{min}:{})});
 const WALK=()=>wu("Walk","",10), INCLINE=()=>[wu("Incline Walk","",30)];
 const xx=(name,sets,reps,rest,video,videos)=>({name,sets,reps,rest,video,...(videos?{videos}:{})});
-const STARTER = [
- {id:"g-d1",plan:"GAYAN Week 8–16",name:"Day 01 · Upper",note:"Week 8–16 · chest, back, shoulders, arms",
-  cardio:INCLINE(),warmup:[WALK(),wu("Band Pull-Apart","https://youtu.be/stwYTTPXubo"),wu("Shoulder Rotation","https://youtu.be/IKJZL4hvppw"),wu("Light Chest Press","https://youtu.be/sEfN2Gebvag")],
-  exercises:[xx("Smith Machine Bench Press",4,"6-8",150,"https://youtu.be/z_r6hDOYtO0"),xx("Neutral-Grip Lat Pulldown",4,"8-10",120,"https://youtu.be/aoHXhJ2x2BQ"),
-   xx("Incline Dumbbell Press",3,"8-10",120,"https://youtu.be/hChjZQhX1Ls"),xx("Seated Cable Row",3,"10-12",90,"https://youtu.be/CsROhQ1onAg"),
-   xx("Dumbbell Lateral Raise",3,"12-15",60,"https://youtu.be/WJm9zA2NY8E"),xx("Rope Triceps Pushdown",3,"10-12",60,"https://youtu.be/vB5OHsJ3EME"),
-   xx("Cable Biceps Curl",3,"10-12",60,"https://youtu.be/2MUEL4nL6hA"),xx("Pallof Press",3,"10/side",45,"https://youtu.be/_2xWmYNnFS8")]},
- {id:"g-d2",plan:"GAYAN Week 8–16",name:"Day 02 · Legs (quads)",note:"Week 8–16 · squat focus",
-  cardio:INCLINE(),warmup:[WALK(),wu("Bodyweight Squat to Bench","https://youtu.be/iIIqHDGH0B8"),wu("Glute Bridge","https://youtu.be/SKOMwg1JLrU"),wu("Leg Press Warm-Up","https://youtu.be/W1SD96lrudY")],
-  exercises:[xx("Hack Squat / Smith Squat",4,"6-8",150,"https://youtu.be/0tn5K9NlCfo",[{label:"Hack",url:"https://youtu.be/0tn5K9NlCfo"},{label:"Smith",url:"https://youtu.be/AHnX-aimA4E"}]),
-   xx("Leg Press",3,"10-12",120,"https://youtu.be/W1SD96lrudY"),xx("Bulgarian Split Squat Supported",3,"8-10/leg",90,"https://youtu.be/SkNsa3eBwLA"),
-   xx("Leg Extension",3,"12-15",60,"https://youtu.be/YyvSfVjQeL0"),xx("Seated Leg Curl",3,"10-12",60,"https://youtu.be/ELOCsoDSmrg"),
-   xx("Standing Calf Raise",3,"12-15",60,"https://youtu.be/SVtg-1loH4c"),xx("Reverse Crunch",3,"12-15",45,"https://youtu.be/SXYrUTUwFoc")]},
- {id:"g-d3",plan:"GAYAN Week 8–16",name:"Day 03 · Upper",note:"Week 8–16 · machines and cables",
-  cardio:INCLINE(),warmup:[WALK(),wu("Band Row","https://youtu.be/JP2xq33lNF0"),wu("Arm Circles","https://youtu.be/fKMJJYPMbsc"),wu("Light Lat Pulldown","https://youtu.be/SALxEARiMkw")],
-  exercises:[xx("Machine Incline Chest Press",4,"8-10",120,"https://youtu.be/ig0NyNlSce4"),xx("Chest-Supported Machine Row",4,"8-10",120,"https://youtu.be/Za4iRd2whOA"),
-   xx("Wide/Medium Grip Lat Pulldown",3,"10-12",90,"https://youtu.be/Z_3xHwuO8Tk"),xx("Machine Shoulder Press",3,"8-10",90,"https://youtu.be/3R14MnZbcpw"),
-   xx("Cable Chest Fly",3,"12-15",60,"https://youtu.be/8Um35Es-ROE"),xx("Cable Lateral Raise",3,"12-15",60,"https://youtu.be/qitQHqNZbeM"),
-   xx("Overhead Rope Triceps Extension",3,"10-12",60,"https://youtu.be/GzmlxvSFE7A"),xx("Hammer Curl",3,"10-12",60,"https://youtu.be/zC3nLlEvin4"),
-   xx("Cable Crunch",3,"12-15",45,"https://youtu.be/aBd6T01PBqw")]},
- {id:"g-d4",plan:"GAYAN Week 8–16",name:"Day 04 · Legs (hamstrings, glutes)",note:"Week 8–16 · hinge focus",
-  cardio:INCLINE(),warmup:[WALK(),wu("Hip Hinge Drill","https://youtu.be/sinpFajtRPw"),wu("Glute Bridge","https://youtu.be/SKOMwg1JLrU"),wu("Light Leg Curl","https://youtu.be/1Tq3QdYUuHs")],
-  exercises:[xx("Romanian Deadlift",4,"6-8",150,"https://youtu.be/ZEnWV4kguKc"),xx("Smith Machine Hip Thrust",3,"8-10",120,"https://youtu.be/qWhloAdOIBc"),
-   xx("Lying Leg Curl",3,"10-12",75,"https://youtu.be/1Tq3QdYUuHs"),xx("Reverse Lunge",3,"10/leg",90,"https://youtu.be/raQl44N_REc"),
-   xx("Cable Pull-Through",3,"12-15",60,"https://youtu.be/yXopOhzEoeo"),xx("Seated Calf Raise",3,"12-15",60,"https://youtu.be/BxfKOyI8sUg"),
-   xx("Dead Bug",3,"10/side",45,"https://youtu.be/zechBkcIMf0")]}
-];
+const STARTER = [];
 
 /* ---------- helpers ---------- */
 const $ = (s,el=document)=>el.querySelector(s);
@@ -507,7 +478,6 @@ function viewTrain(){
         <div class="chips" style="margin-top:8px">${r.exercises.slice(0,4).map(e=>`<span class="chip">${esc(e.name)}</span>`).join("")}${r.exercises.length>4?`<span class="chip">+${r.exercises.length-4}</span>`:""}</div></div>
         <button class="btn primary" data-start="${esc(r.id)}">Start</button></div>`).join("")}
       <button class="btn block" data-start="">Start an empty workout</button>
-      ${S.routines===null?`<p class="muted" style="font-size:13px;margin:0">Your Week 8–16 plan. Sets, reps and rest are suggestions; adjust them on the Routines tab.</p>`:""}
     </div>`;
   }
   const done=a.exercises.reduce((t,e)=>t+e.sets.filter(s=>s.done).length,0), all=a.exercises.reduce((t,e)=>t+e.sets.length,0);
@@ -862,7 +832,7 @@ const _render=render; render=function(){ if(document.activeElement?.closest?.("#
 /* ---------- backup ---------- */
 async function exportData(){
   const data=JSON.stringify({app:"liftlog",version:1,exportedAt:new Date().toISOString(),
-    routines:S.routines,sessions:S.sessions,body:S.body,measures:S.measures},null,1);
+    routines:routines(),sessions:S.sessions,body:S.body,measures:S.measures},null,1);
   const filename="liftlog-backup-"+new Date().toISOString().slice(0,10)+".json";
   let dl=null; try{ dl=window.claude?.use ? await window.claude.use("downloads") : null }catch{}
   if(dl){
