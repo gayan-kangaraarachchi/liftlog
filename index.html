@@ -288,7 +288,7 @@ const Store = {
   }
 };
 const MEAS=[["waist","Waist"],["chest","Chest"],["arm","Arm"],["hips","Hips"],["thigh","Thigh"]];
-const routines = ()=> (S.routines ?? (S.mode==="local"||S.isOwner ? STARTER : [])).map(r=> r.cardio!==undefined ? {...r,cardio:r.cardio.map(c=>c.name==="Incline Walk"&&c.min===20?{...c,min:30}:c)} : {...r,cardio:INCLINE(),warmup:[WALK(),...(r.warmup||[]).filter(w=>w.name!=="Walk")]});
+const routines = ()=> S.routines ?? [];
 let draftTimer; const saveDraft = ()=>{clearTimeout(draftTimer);draftTimer=setTimeout(()=>ls.set("liftlog.active",S.active),300)};
 
 /* last performance of an exercise */
