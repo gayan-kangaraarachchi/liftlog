@@ -132,6 +132,9 @@ nav.tabs a[aria-current="page"]{color:var(--accent)}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
 .stat .v{font-family:var(--display);font-size:28px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
 .stat .k{font-size:12px;color:var(--muted)}
+.wk-pct{font-family:var(--display);font-size:38px;font-weight:700;line-height:1}
+.wk-bar{height:10px;border-radius:5px;background:var(--sunk);overflow:hidden}
+.wk-bar b{display:block;height:100%;border-radius:5px}
 .chart{width:100%;height:auto;display:block;color:var(--muted)}
 [hidden]{display:none!important}
 .chart text{fill:var(--muted);font-size:19px;font-family:var(--body)}
@@ -469,14 +472,28 @@ function viewTrain(){
   if(!a){
     const last=S.sessions[0];
     const ws=weekStart(new Date()); const thisWeek=S.sessions.filter(s=>new Date(s.date)>=ws).length;
+    const doneIds=new Set(S.sessions.filter(x=>new Date(x.date)>=ws&&x.routineId).map(x=>x.routineId));
+    const doneR=act.filter(r=>doneIds.has(r.id)), todo=act.filter(r=>!doneIds.has(r.id));
+    const pct=act.length?Math.round(doneR.length/act.length*100):0;
+    const wkEnd=new Date(ws); wkEnd.setDate(wkEnd.getDate()+6);
+    const shown=S.showDone?act:todo;
     return `<div class="stack">
       <div><div class="eyebrow">${dfmt(new Date(),{weekday:"long",day:"numeric",month:"long"})}</div>
-      <h1>Pick today's session</h1>
+      <h1>${todo.length?"Pick today's session":"Week complete"}</h1>
       <p class="muted" style="margin:4px 0 0">${thisWeek} workout${thisWeek===1?"":"s"} this week${last?` · last: ${esc(last.name)}, ${dfmt(last.date,{weekday:"short",day:"numeric",month:"short"})}`:""}</p></div>
-      ${act.map((r,i,all)=>`${i===0||planOf(all[i-1])!==planOf(r)?`<div class="eyebrow" style="margin-top:${i?10:0}px">${esc(planOf(r))}</div>`:""}<div class="card routine">
-        <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="meta">${r.exercises.length} exercises${r.note?` · ${esc(r.note)}`:""}</div>
+      <section class="card stack wk" style="gap:10px" aria-label="This week's progress">
+        <div class="spread"><div><div class="eyebrow">This week · ${dfmt(ws)}–${dfmt(wkEnd)}</div>
+          <div style="font-size:15px;margin-top:2px"><b class="num">${doneR.length} of ${act.length}</b> workout days done</div></div>
+          <div class="wk-pct num" style="color:${pct===100?"var(--good)":"var(--ink)"}">${pct}%</div></div>
+        <div class="wk-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><b style="width:${pct}%;background:${pct===100?"var(--good)":"var(--accent)"}"></b></div>
+        <div class="chips">${act.map(r=>`<span class="chip" style="${doneIds.has(r.id)?"background:var(--good-soft);color:var(--good);font-weight:600":""}">${doneIds.has(r.id)?"✓ ":""}${esc(r.name.split(" · ")[0])}</span>`).join("")}</div>
+        ${!todo.length?`<p class="muted" style="margin:0;font-size:14px">Every session is done for this week. Nice work! They’ll be back on Monday.</p>`:""}
+      </section>
+      ${shown.map((r,i,all)=>`${i===0||planOf(all[i-1])!==planOf(r)?`<div class="eyebrow" style="margin-top:${i?10:0}px">${esc(planOf(r))}</div>`:""}<div class="card routine">
+        <div style="min-width:0"><h3>${esc(r.name)}${doneIds.has(r.id)?` <span class="chip" style="background:var(--good-soft);color:var(--good);font-family:var(--body);font-size:11px;vertical-align:middle">Done</span>`:""}</h3><div class="meta">${r.exercises.length} exercises${r.note&&r.note!==r.plan?` · ${esc(r.note)}`:""}</div>
         <div class="chips" style="margin-top:8px">${r.exercises.slice(0,4).map(e=>`<span class="chip">${esc(e.name)}</span>`).join("")}${r.exercises.length>4?`<span class="chip">+${r.exercises.length-4}</span>`:""}</div></div>
-        <button class="btn primary" data-start="${esc(r.id)}">Start</button></div>`).join("")}
+        <button class="btn ${doneIds.has(r.id)?"":"primary"}" data-start="${esc(r.id)}">${doneIds.has(r.id)?"Again":"Start"}</button></div>`).join("")}
+      ${doneR.length?`<button class="btn ghost block" id="toggleDone">${S.showDone?"Hide":"Show"} ${doneR.length} done this week</button>`:""}
       <button class="btn block" data-start="">Start an empty workout</button>
     </div>`;
   }
@@ -774,6 +791,7 @@ main.addEventListener("click",ev=>{
     Store.saveRoutines(routines().map(r=>planOf(r)===k?{...r,expired:now}:r)); toast(now?`“${k}” expired. It's hidden from Train.`:`“${k}” is active again`); return }
   if(b.dataset.rmplan!==undefined){ const k=b.dataset.rmplan; const n=routines().filter(r=>planOf(r)===k).length;
     armed(b,()=>{ Store.saveRoutines(routines().filter(r=>planOf(r)!==k)); toast(`Removed “${k}” (${n} day${n>1?"s":""}). Your logged workouts are kept.`) }); return }
+  if(b.id==="toggleDone"){ S.showDone=!S.showDone; render(); return }
   if(b.id==="pasteBtn"){ openPaste(); return }
   if(b.id==="bulkToggle"){ S.bulkOpen=!S.bulkOpen; $("#bulkBox").hidden=!S.bulkOpen; b.textContent=S.bulkOpen?"Hide":"Open"; if(S.bulkOpen) $("#bulkText").focus(); return }
   if(b.id==="bulkInclude"){ const res=parsePlan($("#bulkText").value);
