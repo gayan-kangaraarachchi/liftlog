@@ -1,5 +1,5 @@
 // Liftlog offline cache. Bump VERSION when you upload a new index.html.
-const VERSION = "liftlog-v6";
+const VERSION = "liftlog-v7";
 const CORE = ["./", "index.html", "css/styles.css", "js/plan-parser.js", "js/app.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

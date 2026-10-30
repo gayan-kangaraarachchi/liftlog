@@ -101,10 +101,11 @@ const routines = ()=> S.routines ?? [];
 let draftTimer; const saveDraft = ()=>{clearTimeout(draftTimer);draftTimer=setTimeout(()=>ls.set("liftlog.active",S.active),300)};
 
 /* last performance of an exercise */
-function lastSets(name){
-  const n=name.toLowerCase();
-  for(const s of S.sessions){ const ex=s.exercises.find(e=>e.name.toLowerCase()===n); if(ex&&ex.sets.length) return ex.sets; }
-  return null;
+// Most recent sets for an exercise: same workout day first (e.g. last week's Day 01), else any workout with that exercise.
+function lastSets(name,routineId){
+  const n=name.toLowerCase().trim(), list=[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  const find=pool=>{ for(const s of pool){ const ex=s.exercises.find(e=>e.name.toLowerCase().trim()===n); if(ex&&ex.sets.length) return {sets:ex.sets,date:s.date}; } return null; };
+  return (routineId&&find(list.filter(s=>s.routineId===routineId))) || find(list);
 }
 
 /* ---------- plates ---------- */
@@ -120,19 +121,19 @@ function platesHtml(w){
 /* ---------- workout ---------- */
 function startWorkout(r){
   S.active={routineId:r?.id||null,name:r?.name||"Quick workout",startedAt:Date.now(),
-    warmup:(r?.warmup||[]).map(w=>({...w,done:false})),cardio:(r?.cardio||[]).map(w=>({...w,done:false})),exercises:(r?.exercises||[]).map(buildEx)};
+    warmup:(r?.warmup||[]).map(w=>({...w,done:false})),cardio:(r?.cardio||[]).map(w=>({...w,done:false})),exercises:(r?.exercises||[]).map(x=>buildEx(x,r?.id))};
   saveDraft(); try{navigator.wakeLock?.request("screen").catch(()=>{})}catch{}
   location.hash="#train"; render(); window.scrollTo(0,0);
 }
-function buildEx(e){
-  const prev=lastSets(e.name)||[]; const n=Math.max(1,parseInt(e.sets)||3);
+function buildEx(e,routineId){
+  const last=lastSets(e.name,routineId), prev=last?last.sets:[]; const n=Math.max(1,parseInt(e.sets)||3);
   const defR=parseInt(String(e.reps||"").split("-").pop())||"";
-  return {name:e.name,reps:e.reps||"",rest:+e.rest||90,video:e.video||"",videos:e.videos||null,barbell:e.barbell,
+  return {name:e.name,from:last?last.date:null,reps:e.reps||"",rest:+e.rest||90,video:e.video||"",videos:e.videos||null,barbell:e.barbell,
     sets:Array.from({length:n},(_,i)=>{const p=prev[i]||prev[prev.length-1];return {w:p?p.w:"",r:p?p.r:defR,done:false,prev:p?`${p.w}×${p.r}`:""}})};
 }
 function finishWorkout(){
   const a=S.active; if(!a) return;
-  const exercises=a.exercises.map(e=>({name:e.name,sets:e.sets.filter(s=>s.done&&num(s.r)>0).map(s=>({w:num(s.w),r:num(s.r)}))})).filter(e=>e.sets.length);
+  const exercises=a.exercises.map(e=>({name:e.name,sets:e.sets.filter(s=>(s.done||s.edited)&&num(s.r)>0).map(s=>({w:num(s.w),r:num(s.r)}))})).filter(e=>e.sets.length);
   if(!exercises.length){toast("Tick at least one set before finishing");return}
   const vol=exercises.reduce((t,e)=>t+e.sets.reduce((u,s)=>u+s.w*s.r,0),0);
   const s={id:uid("s"),date:new Date(a.startedAt).toISOString(),name:a.name,routineId:a.routineId,
@@ -279,7 +280,7 @@ function listCard(key,title,items){
 function exCard(e,i){
   const bb=isBarbell(e);
   return `<section class="ex" data-ex="${i}">
-    <div class="ex-top"><div class="t"><h3>${esc(e.name)}</h3><div class="ex-target">Target ${e.sets.length} × ${esc(e.reps||"—")} · rest ${mmss(e.rest)}</div></div>
+    <div class="ex-top"><div class="t"><h3>${esc(e.name)}</h3><div class="ex-target">Target ${e.sets.length} × ${esc(e.reps||"—")} · rest ${mmss(e.rest)}</div>${e.from?`<div class="ex-target" style="color:var(--good)">Filled from ${dfmt(e.from,{weekday:"short",day:"numeric",month:"short"})}</div>`:""}</div>
     <div class="row" style="gap:4px;flex-wrap:nowrap">${vidLinks(e,"Form")}</div></div>
     <table class="sets"><thead><tr><th>Set</th><th>Last</th><th>kg</th><th>Reps</th><th></th></tr></thead><tbody>
     ${e.sets.map((s,j)=>`<tr class="${s.done?"done":""}" data-set="${j}">
@@ -583,7 +584,7 @@ main.addEventListener("input",ev=>{
   if(inp.id==="progEx"){S.progEx=inp.value;render();return}
   if(!inp.matches(".in")||!S.active) return;
   const card=inp.closest("[data-ex]"), tr=inp.closest("tr"); const ex=S.active.exercises[+card.dataset.ex], s=ex.sets[+tr.dataset.set];
-  s[inp.dataset.f]=inp.value.replace(",",".");
+  s[inp.dataset.f]=inp.value.replace(",","."); s.edited=true;
   if(inp.dataset.f==="w"){const p=tr.querySelector(".plates"); if(p) p.innerHTML=platesHtml(s.w);
     // carry weight forward to later empty / untouched sets
     ex.sets.forEach((o,k)=>{if(k>+tr.dataset.set&&!o.done&&(o.w===""||o.w===undefined)){o.w=s.w;const ri=card.querySelector(`tr[data-set="${k}"] .in[data-f="w"]`);if(ri){ri.value=s.w;const pp=ri.parentElement.querySelector(".plates");if(pp)pp.innerHTML=platesHtml(s.w)}}})}

@@ -21,7 +21,7 @@ A simple gym workout tracker that runs in your phone's browser and installs to y
 - **Week progress.** The Train tab shows this week's percentage, a progress bar and a ✓ for each day done.
 - **Finished days are hidden** for the rest of the week. When every day is done you see *Week complete*. Days come back every Monday, and *Show done this week* lets you repeat one.
 - **Warm-up and cool-down checklists** with a ▶ Video button for each move.
-- **Set logging.** Enter weight (kg) and reps, tick each set, and see what you lifted last time.
+- **Set logging.** Weights and reps are filled in from last time you did that day. Adjust, tick each set, done.
 - **Rest timer.** Starts when you tick a set, with −15 s, +15 s and Skip, and beeps and vibrates when rest is over.
 - **Timed cardio.** A *Start* button for timed items such as a 10-minute walk or 30-minute incline walk.
 - **Form videos.** ▶ buttons open your coach's YouTube links. An exercise with alternatives gets one button each, for example *Hip thrust* or *Glute bridge*.
@@ -123,6 +123,10 @@ DAY 02
 ---
 
 ## Changelog
+
+**v7 · 30 Oct 2026**
+- Starting a workout fills in weights and reps from the last time you did that same day (for example last week's Day 01), shown as "Filled from …". Other workouts with the same exercise are used if that day has no history.
+- Sets you type in are saved even if you forget to tick them.
 
 **v6 · 30 Oct 2026**
 - Start buttons are green.
