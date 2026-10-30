@@ -106,20 +106,29 @@ DAY 02
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole app |
-| `sw.js` | Offline support |
+| `index.html` | Page structure: header, tab bar, rest-timer bar |
+| `css/styles.css` | All styling, with light and dark themes |
+| `js/plan-parser.js` | Reads a pasted plan (days, warm-up, workout, cool-down, links) |
+| `js/app.js` | The app itself: storage, screens, timers, charts, backup |
+| `sw.js` | Offline support and updates |
 | `manifest.webmanifest` | App name, colours and icons for installing |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | App icons |
 
 ## Updating the app
 
-1. Upload the new `index.html` and `sw.js` with **Add file → Upload files → Commit changes**.
+1. Upload the changed files with **Add file → Upload files → Commit changes**. Keep the `css` and `js` folders: drag the folders in, or upload into them.
 2. Each update raises `VERSION` in `sw.js`, which tells phones to download the new version.
 3. Open the app, close it and open it again. The update appears on the second launch.
 
 ---
 
 ## Changelog
+
+**v5 · 30 Oct 2026**
+- Week progress bar is always green.
+
+**v4 · 30 Oct 2026**
+- Code split into separate files: `css/styles.css`, `js/plan-parser.js` and `js/app.js`. No change to features or your data.
 
 **v3 · 29 Oct 2026**
 - Train tab shows week progress with a percentage, progress bar and ✓ for each day.
