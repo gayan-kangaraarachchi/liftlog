@@ -49,7 +49,7 @@ function armed(btn,fn){ // two-tap confirm
 }
 
 /* ---------- state + storage ---------- */
-const S = {mode:"pending", routines:null, sessions:[], body:[], measures:[], measKey:"waist", active:ls.get("liftlog.active",null), tab:"train", progEx:null};
+const S = {histOpen:new Set(), mode:"pending", routines:null, sessions:[], body:[], measures:[], measKey:"waist", active:ls.get("liftlog.active",null), tab:"train", progEx:null};
 const Store = {
   db:null, uid:null,
   async init(){
@@ -240,7 +240,7 @@ function viewTrain(){
       ${shown.map((r,i,all)=>`${i===0||planOf(all[i-1])!==planOf(r)?`<div class="eyebrow" style="margin-top:${i?10:0}px">${esc(planOf(r))}</div>`:""}<div class="card routine">
         <div style="min-width:0"><h3>${esc(r.name)}${doneIds.has(r.id)?` <span class="chip" style="background:var(--good-soft);color:var(--good);font-family:var(--body);font-size:11px;vertical-align:middle">Done</span>`:""}</h3><div class="meta">${r.exercises.length} exercises${r.note&&r.note!==r.plan?` · ${esc(r.note)}`:""}</div>
         <div class="chips" style="margin-top:8px">${r.exercises.slice(0,4).map(e=>`<span class="chip">${esc(e.name)}</span>`).join("")}${r.exercises.length>4?`<span class="chip">+${r.exercises.length-4}</span>`:""}</div></div>
-        <button class="btn ${doneIds.has(r.id)?"":"primary"}" data-start="${esc(r.id)}">${doneIds.has(r.id)?"Again":"Start"}</button></div>`).join("")}
+        <button class="btn ${doneIds.has(r.id)?"":"go"}" data-start="${esc(r.id)}">${doneIds.has(r.id)?"Again":"Start"}</button></div>`).join("")}
       ${doneR.length?`<button class="btn ghost block" id="toggleDone">${S.showDone?"Hide":"Show"} ${doneR.length} done this week</button>`:""}
       <button class="btn block" data-start="">Start an empty workout</button>
     </div>`;
@@ -297,7 +297,7 @@ function planName(t){ return (t||"").trim() || "Pasted plan · "+dfmt(new Date()
 const planOf = r => r.plan || "My routines";
 function routineCard(r){ return `<div class="card stack" style="gap:8px">
       <div class="spread"><div style="min-width:0"><h3>${esc(r.name)}</h3>${r.note&&r.note!==r.plan?`<div class="muted" style="font-size:13px">${esc(r.note)}</div>`:""}</div>
-      <div class="row" style="flex-wrap:nowrap"><button class="btn sm" data-edit="${esc(r.id)}">Edit</button><button class="btn sm primary" data-start="${esc(r.id)}">Start</button></div></div>
+      <div class="row" style="flex-wrap:nowrap"><button class="btn sm" data-edit="${esc(r.id)}">Edit</button><button class="btn sm go" data-start="${esc(r.id)}">Start</button></div></div>
       ${(r.warmup||[]).length?`<div class="muted" style="font-size:13px"><b style="color:var(--ink)">Warm-up:</b> ${r.warmup.map(w=>w.min?`${esc(w.name)} ${w.min} min`:`<a href="${esc(videoFor(w))}" target="_blank" rel="noopener">${esc(w.name)}</a>`).join(" · ")}</div>`:""}
       ${(r.cardio||[]).length?`<div class="muted" style="font-size:13px"><b style="color:var(--ink)">After:</b> ${r.cardio.map(w=>w.min?`${esc(w.name)} ${w.min} min`:`<a href="${esc(videoFor(w))}" target="_blank" rel="noopener">${esc(w.name)}</a>`).join(" · ")}</div>`:""}
       <div>${r.exercises.map(e=>`<div class="spread" style="padding:5px 0;border-top:1px solid var(--line);font-size:14px">
@@ -500,12 +500,13 @@ function viewHistory(){
     </div>`;
   if(!S.sessions.length) return `<div class="stack"><h1>History</h1>${backup}<div class="empty">No workouts logged yet. Start one from the Train tab.</div></div>`;
   return `<div class="stack"><h1>History</h1>${backup}
-    ${S.sessions.map(s=>`<div class="card hist">
-      <div class="spread"><div style="min-width:0"><div class="eyebrow">${dfmt(s.date,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}</div><h3>${esc(s.name)}</h3></div>
-      <div style="text-align:right" class="num"><div style="font-family:var(--display);font-size:20px;font-weight:600">${fmtBig(s.volume||0)} kg</div><div class="muted" style="font-size:12px">${s.minutes} min</div></div></div>
+    ${S.sessions.length>1?`<div class="row" style="justify-content:flex-end"><button class="btn sm ghost" id="histAll">${S.sessions.every(x=>S.histOpen.has(x.id))?"Collapse all":"Expand all"}</button></div>`:""}
+    ${S.sessions.map(s=>`<details class="card hist" data-hid="${esc(s.id)}" ${S.histOpen.has(s.id)?"open":""}>
+      <summary class="spread"><div style="min-width:0"><div class="eyebrow">${dfmt(s.date,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}</div><h3>${esc(s.name)}</h3></div>
+      <div class="row" style="flex-wrap:nowrap;gap:10px"><div style="text-align:right" class="num"><div style="font-family:var(--display);font-size:20px;font-weight:600">${fmtBig(s.volume||0)} kg</div><div class="muted" style="font-size:12px">${s.minutes} min · ${s.exercises.length} exercise${s.exercises.length===1?"":"s"}</div></div><span class="chev" aria-hidden="true"></span></div></summary>
       <div class="lines">${s.exercises.map(e=>{const top=e.sets.reduce((a,b)=>e1rm(b.w,b.r)>e1rm(a.w,a.r)?b:a,e.sets[0]);return `<div><b>${esc(e.name)}</b> · ${e.sets.length} sets · top ${top.w} kg × ${top.r}</div>`}).join("")}</div>
       <div style="text-align:right;margin-top:6px"><button class="btn sm ghost danger" data-delsess="${esc(s.id)}">Delete</button></div>
-    </div>`).join("")}</div>`;
+    </details>`).join("")}</div>`;
 }
 
 /* ---------- render + events ---------- */
@@ -539,6 +540,7 @@ main.addEventListener("click",ev=>{
     Store.saveRoutines(routines().map(r=>planOf(r)===k?{...r,expired:now}:r)); toast(now?`“${k}” expired. It's hidden from Train.`:`“${k}” is active again`); return }
   if(b.dataset.rmplan!==undefined){ const k=b.dataset.rmplan; const n=routines().filter(r=>planOf(r)===k).length;
     armed(b,()=>{ Store.saveRoutines(routines().filter(r=>planOf(r)!==k)); toast(`Removed “${k}” (${n} day${n>1?"s":""}). Your logged workouts are kept.`) }); return }
+  if(b.id==="histAll"){ const all=S.sessions.every(x=>S.histOpen.has(x.id)); S.histOpen=all?new Set():new Set(S.sessions.map(x=>x.id)); render(); return }
   if(b.id==="toggleDone"){ S.showDone=!S.showDone; render(); return }
   if(b.id==="pasteBtn"){ openPaste(); return }
   if(b.id==="bulkToggle"){ S.bulkOpen=!S.bulkOpen; $("#bulkBox").hidden=!S.bulkOpen; b.textContent=S.bulkOpen?"Hide":"Open"; if(S.bulkOpen) $("#bulkText").focus(); return }
@@ -587,6 +589,7 @@ main.addEventListener("input",ev=>{
     ex.sets.forEach((o,k)=>{if(k>+tr.dataset.set&&!o.done&&(o.w===""||o.w===undefined)){o.w=s.w;const ri=card.querySelector(`tr[data-set="${k}"] .in[data-f="w"]`);if(ri){ri.value=s.w;const pp=ri.parentElement.querySelector(".plates");if(pp)pp.innerHTML=platesHtml(s.w)}}})}
   saveDraft();
 });
+main.addEventListener("toggle",ev=>{ const d=ev.target; if(d.dataset?.hid){ d.open?S.histOpen.add(d.dataset.hid):S.histOpen.delete(d.dataset.hid); const b=$("#histAll"); if(b) b.textContent=S.sessions.every(x=>S.histOpen.has(x.id))?"Collapse all":"Expand all"; } },true);
 main.addEventListener("change",ev=>{ if(ev.target.id==="measKey"){S.measKey=ev.target.value;render();return}
   if(ev.target.id==="importFile"){const f=ev.target.files[0]; ev.target.value=""; if(f) importData(f); return}
   if(ev.target.id==="progEx"){S.progEx=ev.target.value;render();return}

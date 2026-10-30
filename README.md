@@ -36,7 +36,7 @@ A simple gym workout tracker that runs in your phone's browser and installs to y
 - **Body measurements:** waist, chest, arm, hips and thigh in cm, with the change since your first entry and a trend chart.
 
 ### History and backup
-- **Workout history** with time and total weight lifted, and a delete option.
+- **Workout history** with time and total weight lifted. Cards start collapsed: tap to see exercises, or use *Expand all*.
 - **Save backup file** exports your plans, workouts, body weight and measurements as a `.json` file.
 - **Load backup file** restores a backup or moves your data to another phone. Workouts already in the app are not duplicated.
 
@@ -123,6 +123,10 @@ DAY 02
 ---
 
 ## Changelog
+
+**v6 · 30 Oct 2026**
+- Start buttons are green.
+- History cards are collapsed by default: tap a card to expand or collapse it, or use *Expand all* / *Collapse all*.
 
 **v5 · 30 Oct 2026**
 - Week progress bar is always green.
